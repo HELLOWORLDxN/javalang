@@ -1,20 +1,21 @@
 import re
 import unicodedata
-from collections import namedtuple
 
 import six
+
+from .code__structures import Position
 
 
 class LexerError(Exception):
     pass
 
-Position = namedtuple('Position', ['line', 'column'])
-
 class JavaToken(object):
-    def __init__(self, value, position=None, javadoc=None):
+    def __init__(self, value, position=None, javadoc=None, start=None, stop=None):
         self.value = value
         self.position = position
         self.javadoc = javadoc
+        self.start = start
+        self.stop = stop
 
     def __repr__(self):
         if self.position:
@@ -548,8 +549,12 @@ class JavaTokenizer(object):
                 self.i = self.i + 1
                 continue
 
-            position = Position(self.current_line, self.i - self.start_of_line)
-            token = token_type(self.data[self.i:self.j], position, self.javadoc)
+            position = Position(self.current_line, self.i - self.start_of_line, idx=self.i)
+            start = position
+            stop =  Position(self.current_line, self.j - self.start_of_line, idx=self.j)
+            token = token_type(self.data[self.i:self.j], position, self.javadoc, 
+                               start=start, stop=stop
+                               )
             yield token
 
             if self.javadoc:
@@ -635,3 +640,4 @@ def reformat_tokens(tokens):
     output.append('\n')
 
     return ''.join(output)
+

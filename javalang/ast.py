@@ -19,7 +19,9 @@ class MetaNode(type):
 
 @six.add_metaclass(MetaNode)
 class Node(object):
-    attrs = ()
+    attrs = ('text_range',)
+    # todo: make subclass extendable
+    not_children_attrs = ('text_range',)
 
     def __init__(self, **kwargs):
         values = kwargs.copy()
@@ -58,7 +60,8 @@ class Node(object):
 
     @property
     def children(self):
-        return [getattr(self, attr_name) for attr_name in self.attrs]
+        return [getattr(self, attr_name) for attr_name in self.attrs 
+                if attr_name not in set(self.not_children_attrs)]
     
     @property
     def position(self):
@@ -84,3 +87,4 @@ def dump(ast, file):
 
 def load(file):
     return pickle.load(file)
+
